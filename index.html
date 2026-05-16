@@ -1,362 +1,666 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mahjong Jeopardy Deluxe+</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mahjong Jeopardy Deluxe</title>
 <style>
+:root{
+  --blue:#061a8c;
+  --blue2:#0b2bd6;
+  --blue3:#143dff;
+  --gold:#ffd84d;
+  --white:#ffffff;
+  --dark:#020735;
+  --panel:#07115f;
+}
+*{box-sizing:border-box}
 body{
-    font-family: Arial, sans-serif;
-    background:#0b3d2e;
-    color:white;
-    margin:0;
-    padding:0;
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:radial-gradient(circle at top,#143dff 0%,#061a8c 45%,#020735 100%);
+  color:white;
+  min-height:100vh;
 }
 header{
-    background:#07251c;
-    padding:15px;
-    text-align:center;
-    font-size:2em;
-    font-weight:bold;
+  text-align:center;
+  padding:18px 10px;
+  background:#020735;
+  color:var(--gold);
+  font-size:clamp(1.6rem,4vw,3rem);
+  font-weight:900;
+  letter-spacing:1px;
+  text-shadow:2px 2px #000;
+  border-bottom:4px solid var(--gold);
 }
-#board{
-    display:grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap:6px;
-    padding:10px;
+.hidden{display:none!important}
+.screen{
+  width:min(1100px,94vw);
+  margin:24px auto;
+  background:rgba(2,7,53,.92);
+  border:3px solid var(--gold);
+  border-radius:18px;
+  padding:22px;
+  box-shadow:0 10px 30px rgba(0,0,0,.45);
 }
-.category{
-    background:#124d3b;
-    padding:10px;
-    text-align:center;
-    font-weight:bold;
-    min-height:60px;
-}
-.clue{
-    background:#1f7a5a;
-    padding:20px 5px;
-    text-align:center;
-    cursor:pointer;
-    font-size:1.3em;
-    border-radius:8px;
-}
-.clue.used{
-    visibility:hidden;
-}
-#modal{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.85);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    z-index:1000;
-}
-#modalContent{
-    background:#fff;
-    color:#000;
-    padding:20px;
-    width:85%;
-    max-width:900px;
-    border-radius:16px;
-    text-align:center;
+h1,h2,h3{margin-top:0;color:var(--gold)}
+button, select, input{
+  font-size:1rem;
 }
 button{
-    padding:10px 18px;
-    margin:8px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    font-size:1em;
+  background:var(--gold);
+  color:#07115f;
+  font-weight:800;
+  border:none;
+  border-radius:10px;
+  padding:12px 18px;
+  margin:6px;
+  cursor:pointer;
+  box-shadow:0 4px 0 #a77b00;
+}
+button:active{transform:translateY(2px);box-shadow:0 2px 0 #a77b00}
+button.secondary{
+  background:#ffffff;
+  color:#07115f;
+}
+button.danger{background:#ff8585;color:#280000}
+.controls{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px;
+  margin:18px 0;
+}
+.controlBox{
+  background:#07115f;
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:14px;
+  padding:14px;
+}
+.controlBox label{
+  display:block;
+  margin-bottom:8px;
+  color:var(--gold);
+  font-weight:bold;
+}
+select,input{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:2px solid var(--gold);
+}
+#gameTop{
+  width:min(1200px,98vw);
+  margin:10px auto;
+}
+#statusBar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:space-between;
+  align-items:center;
+  background:#020735;
+  border:2px solid var(--gold);
+  border-radius:14px;
+  padding:10px;
+  margin-bottom:10px;
+}
+#roundLabel,#timerDisplay{
+  color:var(--gold);
+  font-weight:900;
+  font-size:1.15rem;
 }
 #scores{
-    display:flex;
-    justify-content:center;
-    gap:25px;
-    padding:10px;
-    font-size:1.1em;
-    background:#07251c;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:8px;
+  margin-bottom:10px;
+}
+.scoreCard{
+  background:#07115f;
+  border:2px solid var(--gold);
+  border-radius:12px;
+  padding:10px;
+  text-align:center;
+}
+.scoreCard strong{color:var(--gold);font-size:1.4rem}
+#board{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:7px;
+}
+.category{
+  min-height:62px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  background:#020735;
+  color:white;
+  border:2px solid var(--gold);
+  padding:8px;
+  font-weight:900;
+  font-size:clamp(.78rem,1.6vw,1.05rem);
+  text-transform:uppercase;
+}
+.clue{
+  min-height:78px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(180deg,#143dff,#061a8c);
+  color:var(--gold);
+  border:2px solid #ffffff;
+  border-radius:6px;
+  font-size:clamp(1.1rem,3vw,2rem);
+  font-weight:900;
+  cursor:pointer;
+  text-shadow:2px 2px #000;
+}
+.clue.used{
+  background:#020735;
+  color:#020735;
+  border-color:#020735;
+  cursor:default;
+}
+#modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.86);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+  padding:12px;
+}
+#modalContent{
+  width:min(980px,96vw);
+  max-height:92vh;
+  overflow:auto;
+  background:#061a8c;
+  border:4px solid var(--gold);
+  border-radius:18px;
+  color:white;
+  padding:20px;
+  text-align:center;
+  box-shadow:0 0 40px #000;
+}
+#clueText{
+  font-size:clamp(1.3rem,3vw,2.2rem);
+  line-height:1.35;
+  margin:18px 0;
+}
+#answerText{
+  display:none;
+  background:#020735;
+  border:2px solid var(--gold);
+  border-radius:14px;
+  padding:16px;
+  margin:14px auto;
+  font-size:1.35rem;
+}
+.awardRow{
+  margin-top:12px;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
 }
 .tile{
-    width:70px;
-    height:90px;
-    background:#fff;
-    border:3px solid #ddd;
-    border-radius:10px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    margin:6px;
-    color:#000;
-    font-size:2em;
-    font-weight:bold;
+  width:68px;
+  height:88px;
+  background:#fff;
+  color:#111;
+  border:4px solid #e6e6e6;
+  border-bottom-color:#bcbcbc;
+  border-radius:10px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin:5px;
+  font-size:2.15rem;
+  font-weight:900;
+  box-shadow:0 4px 0 rgba(0,0,0,.28);
 }
 .answerTile{
-    cursor:pointer;
-    transition:transform .2s;
+  cursor:pointer;
 }
 .answerTile:hover{
-    transform:scale(1.08);
+  outline:4px solid var(--gold);
+  transform:scale(1.05);
 }
 .hand{
-    display:flex;
-    justify-content:center;
-    flex-wrap:wrap;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin:10px 0;
 }
-.small{
-    font-size:1.2em;
+.choiceGrid{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:8px;
+  margin:14px 0;
+}
+.choiceLabel{
+  display:inline-block;
+  background:#020735;
+  border:2px solid var(--gold);
+  border-radius:12px;
+  padding:10px;
+  margin:6px;
+}
+#finalScreen input{
+  max-width:180px;
+  margin:auto;
+}
+.finalCard{
+  background:#07115f;
+  border:2px solid var(--gold);
+  border-radius:14px;
+  padding:14px;
+  margin:12px 0;
+}
+@media(max-width:760px){
+  #board{gap:4px}
+  .category{min-height:54px;padding:4px;font-size:.62rem}
+  .clue{min-height:58px;font-size:1rem}
+  .tile{width:54px;height:70px;font-size:1.65rem}
 }
 </style>
 </head>
 <body>
+<header>🀄 Mahjong Jeopardy Deluxe</header>
 
-<header>🀄 Mahjong Jeopardy Deluxe+</header>
+<section id="setupScreen" class="screen">
+  <h2>Game Settings</h2>
+  <p>Choose your game setup, then start. This version keeps the Jeopardy-style blue board, supports 1–4 players/teams, includes timers, Double Jeopardy, Final Jeopardy, and cleaner tile visuals without English labels.</p>
+  <div class="controls">
+    <div class="controlBox">
+      <label for="playerCount">Players / Teams</label>
+      <select id="playerCount">
+        <option value="1">1 Player</option>
+        <option value="2" selected>2 Players</option>
+        <option value="3">3 Players</option>
+        <option value="4">4 Players</option>
+      </select>
+    </div>
+    <div class="controlBox">
+      <label for="timerSeconds">Question Timer</label>
+      <select id="timerSeconds">
+        <option value="0">No Timer</option>
+        <option value="20">20 Seconds</option>
+        <option value="30" selected>30 Seconds</option>
+        <option value="45">45 Seconds</option>
+        <option value="60">60 Seconds</option>
+      </select>
+    </div>
+    <div class="controlBox">
+      <label for="gameMode">Rounds</label>
+      <select id="gameMode">
+        <option value="single">Jeopardy Round Only</option>
+        <option value="double" selected>Jeopardy + Double + Final</option>
+      </select>
+    </div>
+  </div>
+  <button id="startBtn" type="button">Start Game</button>
+</section>
 
-<div id="scores"></div>
+<main id="gameScreen" class="hidden">
+  <div id="gameTop">
+    <div id="statusBar">
+      <div id="roundLabel">Round 1</div>
+      <div id="timerDisplay">Timer: Off</div>
+      <div>
+        <button id="nextRoundBtn" type="button" class="secondary">Next Round</button>
+        <button id="finalBtn" type="button" class="secondary">Final Jeopardy</button>
+        <button id="restartBtn" type="button" class="danger">Restart</button>
+      </div>
+    </div>
+    <div id="scores"></div>
+    <div id="board"></div>
+  </div>
+</main>
 
-<div id="board"></div>
+<section id="finalScreen" class="screen hidden">
+  <h2>Final Jeopardy</h2>
+  <div id="finalCategory"></div>
+  <p>Each player/team may wager up to their current score. Reveal the clue, enter wagers, and award points manually.</p>
+  <div id="wagers"></div>
+  <button id="revealFinalBtn" type="button">Reveal Final Clue</button>
+  <div id="finalClue" class="finalCard hidden"></div>
+  <button id="showFinalAnswerBtn" type="button" class="secondary">Show Final Answer</button>
+  <div id="finalAnswer" class="finalCard hidden"></div>
+  <div id="finalAward" class="awardRow"></div>
+  <button id="backToGameBtn" type="button">Back to Board</button>
+</section>
 
 <div id="modal">
-    <div id="modalContent">
-        <div id="questionArea"></div>
-        <div id="answerArea"></div>
-        <button onclick="closeModal()">Close</button>
-    </div>
+  <div id="modalContent">
+    <h2 id="modalTitle"></h2>
+    <div id="clueText"></div>
+    <div id="answerChoices"></div>
+    <button id="showAnswerBtn" type="button">Show Answer</button>
+    <div id="answerText"></div>
+    <div id="awardButtons" class="awardRow"></div>
+    <button id="closeBtn" type="button" class="secondary">Close</button>
+  </div>
 </div>
 
 <script>
-const teams = [
-    {name:"Player 1", score:0},
-    {name:"Player 2", score:0}
+var players = [];
+var currentRound = 0;
+var currentClue = null;
+var currentValue = 0;
+var timerSeconds = 30;
+var timerInterval = null;
+var timeLeft = 0;
+var gameMode = "double";
+
+function tile(s){ return '<span class="tile">'+s+'</span>'; }
+function choices(items){
+  var out = '<div class="choiceGrid">';
+  for(var i=0;i<items.length;i++){
+    out += '<span class="choiceLabel">'+items[i].label+' '+tile(items[i].symbol)+'</span>';
+  }
+  out += '</div>';
+  return out;
+}
+
+var rounds = [
+{
+  name:"Jeopardy Round",
+  multiplier:1,
+  categories:[
+    {title:"Tile Basics", clues:[
+      {v:100,q:'Which tile is Bamboo 3?'+choices([{label:"A",symbol:"🀐"},{label:"B",symbol:"🀒"},{label:"C",symbol:"🀔"},{label:"D",symbol:"🀖"}]),a:"B. Bamboo 3."},
+      {v:200,q:'Which tile is Circle 5?'+choices([{label:"A",symbol:"🀝"},{label:"B",symbol:"🀙"},{label:"C",symbol:"🀜"},{label:"D",symbol:"🀞"}]),a:"C. Circle 5."},
+      {v:300,q:'Which tile is Character 9?'+choices([{label:"A",symbol:"🀇"},{label:"B",symbol:"🀏"},{label:"C",symbol:"🀋"},{label:"D",symbol:"🀍"}]),a:"B. Character 9."},
+      {v:400,q:'Which tile is the Red Dragon?'+choices([{label:"A",symbol:"🀄"},{label:"B",symbol:"🀅"},{label:"C",symbol:"🀆"},{label:"D",symbol:"🀀"}]),a:"A. Red Dragon."},
+      {v:500,q:'Which tile is North Wind?'+choices([{label:"A",symbol:"🀁"},{label:"B",symbol:"🀂"},{label:"C",symbol:"🀃"},{label:"D",symbol:"🀀"}]),a:"C. North Wind."}
+    ]},
+    {title:"Complete the Set", clues:[
+      {v:100,q:'Which tile completes this pung?<div class="hand">'+tile("🀙")+tile("🀙")+'</div>'+choices([{label:"A",symbol:"🀙"},{label:"B",symbol:"🀚"},{label:"C",symbol:"🀛"},{label:"D",symbol:"🀜"}]),a:"A. A pung is three identical tiles."},
+      {v:200,q:'Which tile completes this chow?<div class="hand">'+tile("🀇")+tile("🀈")+'</div>'+choices([{label:"A",symbol:"🀊"},{label:"B",symbol:"🀉"},{label:"C",symbol:"🀋"},{label:"D",symbol:"🀌"}]),a:"B. The sequence is 1, 2, 3 Characters."},
+      {v:300,q:'Which tile completes this pair?<div class="hand">'+tile("🀄")+'</div>'+choices([{label:"A",symbol:"🀄"},{label:"B",symbol:"🀅"},{label:"C",symbol:"🀆"},{label:"D",symbol:"🀃"}]),a:"A. A pair is two identical tiles."},
+      {v:400,q:'Which tile completes this chow?<div class="hand">'+tile("🀑")+tile("🀒")+'</div>'+choices([{label:"A",symbol:"🀓"},{label:"B",symbol:"🀔"},{label:"C",symbol:"🀕"},{label:"D",symbol:"🀖"}]),a:"A. This completes 2, 3, 4 Bamboo."},
+      {v:500,q:'Which tile completes this pung?<div class="hand">'+tile("🀂")+tile("🀂")+'</div>'+choices([{label:"A",symbol:"🀁"},{label:"B",symbol:"🀂"},{label:"C",symbol:"🀃"},{label:"D",symbol:"🀀"}]),a:"B. Three identical West Winds make a pung."}
+    ]},
+    {title:"Game Terms", clues:[
+      {v:100,q:"This term means three identical tiles.",a:"What is a pung?"},
+      {v:200,q:"This term means four identical tiles.",a:"What is a kong?"},
+      {v:300,q:"This term means three suited tiles in sequence.",a:"What is a chow?"},
+      {v:400,q:"This phrase means a complete winning hand.",a:"What is Mahjong?"},
+      {v:500,q:"This is the tile-passing phase used in American Mahjong.",a:"What is the Charleston?"}
+    ]},
+    {title:"American Mahjong", clues:[
+      {v:100,q:"This item lists the legal hands for the year.",a:"What is the National Mah Jongg League card?"},
+      {v:200,q:"This special tile can substitute in many grouped sets.",a:"What is a joker?"},
+      {v:300,q:"Jokers usually cannot be used in this two-tile grouping.",a:"What is a pair?"},
+      {v:400,q:"This action allows a player to take a discarded tile to complete and expose a set.",a:"What is calling a tile?"},
+      {v:500,q:"This move lets a player replace an exposed joker with the natural tile.",a:"What is a joker exchange?"}
+    ]},
+    {title:"Strategy", clues:[
+      {v:100,q:"Early in the game, this helps you stay open to several possible hands.",a:"What is keeping flexible tiles?"},
+      {v:200,q:"Watching these can reveal what tiles may be safe or dangerous.",a:"What are discards?"},
+      {v:300,q:"Exposing tiles too early gives opponents this.",a:"What is information about your hand?"},
+      {v:400,q:"This strategy means discarding carefully to avoid helping another player win.",a:"What is defensive play?"},
+      {v:500,q:"Changing your target hand when the tiles point elsewhere is an example of this skill.",a:"What is adaptation or flexibility?"}
+    ]},
+    {title:"Table Skills", clues:[
+      {v:100,q:"This habit keeps the game moving and reduces confusion.",a:"What is taking turns clearly and promptly?"},
+      {v:200,q:"Saying the tile name clearly when discarding helps with this.",a:"What is table communication?"},
+      {v:300,q:"Organizing tiles by suit and pattern helps a player do this.",a:"What is read the hand more easily?"},
+      {v:400,q:"Looking at other players’ exposures helps you infer this.",a:"What hands or patterns they may be building?"},
+      {v:500,q:"A good learner asks rules questions at this time to avoid disrupting live play.",a:"What is between hands or before the game?"}
+    ]}
+  ]
+},
+{
+  name:"Double Jeopardy",
+  multiplier:2,
+  categories:[
+    {title:"Pattern Reading", clues:[
+      {v:200,q:'Which tile completes the chow?<div class="hand">'+tile("🀚")+tile("🀛")+'</div>'+choices([{label:"A",symbol:"🀙"},{label:"B",symbol:"🀜"},{label:"C",symbol:"🀝"},{label:"D",symbol:"🀞"}]),a:"B. 2, 3, 4 Circles."},
+      {v:400,q:'Which tile could complete this pair?<div class="hand">'+tile("🀅")+'</div>'+choices([{label:"A",symbol:"🀄"},{label:"B",symbol:"🀅"},{label:"C",symbol:"🀆"},{label:"D",symbol:"🀀"}]),a:"B. Same tile completes the pair."},
+      {v:600,q:'Which tile completes this pung?<div class="hand">'+tile("🀋")+tile("🀋")+'</div>'+choices([{label:"A",symbol:"🀊"},{label:"B",symbol:"🀋"},{label:"C",symbol:"🀌"},{label:"D",symbol:"🀍"}]),a:"B. Three identical Character 5 tiles."},
+      {v:800,q:'Which tile completes a 7, 8, 9 Bamboo chow?<div class="hand">'+tile("🀕")+tile("🀖")+'</div>'+choices([{label:"A",symbol:"🀔"},{label:"B",symbol:"🀗"},{label:"C",symbol:"🀓"},{label:"D",symbol:"🀒"}]),a:"B. Bamboo 9."},
+      {v:1000,q:'Which answer best completes this as a kong?<div class="hand">'+tile("🀀")+tile("🀀")+tile("🀀")+'</div>'+choices([{label:"A",symbol:"🀀"},{label:"B",symbol:"🀁"},{label:"C",symbol:"🀂"},{label:"D",symbol:"🀃"}]),a:"A. Four identical East Winds make a kong."}
+    ]},
+    {title:"Card Reading", clues:[
+      {v:200,q:"In American Mahjong, the card changes on this schedule.",a:"What is annually?"},
+      {v:400,q:"A hand marked concealed cannot use this action to expose a set.",a:"What is calling a discard?"},
+      {v:600,q:"Repeated numbers across suits often point to this kind of hand structure.",a:"What is a pattern hand?"},
+      {v:800,q:"When choosing a hand, this matters as much as the tiles you have now.",a:"What is how many tiles you still need?"},
+      {v:1000,q:"A hand with rare singles or pairs may be harder because jokers usually cannot help here.",a:"What are singles and pairs?"}
+    ]},
+    {title:"Defense", clues:[
+      {v:200,q:"A discard is riskier when it matches an opponent’s exposed set or visible pattern.",a:"What is a dangerous discard?"},
+      {v:400,q:"Holding a tile late because another player may need it is called this.",a:"What is defensive holding?"},
+      {v:600,q:"If several copies of a tile are visible, that tile may be this for another player.",a:"What is unavailable or dead?"},
+      {v:800,q:"An opponent with two exposures has given you this kind of information.",a:"What is strong evidence about their hand direction?"},
+      {v:1000,q:"The safest late-game discard is often one that has already been discarded and ignored, sometimes called this.",a:"What is a safe tile?"}
+    ]},
+    {title:"Jokers", clues:[
+      {v:200,q:"Jokers are most useful in these multi-tile groupings.",a:"What are pungs, kongs, and larger sets?"},
+      {v:400,q:"A joker sitting in another player’s exposure may be taken if you have this.",a:"What is the natural tile it represents?"},
+      {v:600,q:"Using a joker in a pair is generally this in American Mahjong.",a:"What is not allowed?"},
+      {v:800,q:"A hand with many singles and pairs reduces the value of these.",a:"What are jokers?"},
+      {v:1000,q:"A player who exchanges a joker usually improves their hand while revealing this.",a:"What is information about their tiles or direction?"}
+    ]},
+    {title:"Winning Logic", clues:[
+      {v:200,q:"A winning hand must match this exactly in American Mahjong.",a:"What is a legal hand on the card?"},
+      {v:400,q:"Before declaring Mahjong, players should verify this.",a:"What is that the hand matches the card and tile count?"},
+      {v:600,q:"A hand is stronger when it needs fewer of these.",a:"What are specific missing tiles?"},
+      {v:800,q:"A hand becomes weaker when too many needed tiles are already here.",a:"What is discarded, exposed, or dead?"},
+      {v:1000,q:"The best target hand balances score value with this.",a:"What is realistic completion probability?"}
+    ]},
+    {title:"Advanced Play", clues:[
+      {v:200,q:"Shifting from one hand to another because your draw changes is this.",a:"What is pivoting?"},
+      {v:400,q:"Tiles that support several possible hands are valuable because they preserve this.",a:"What is flexibility?"},
+      {v:600,q:"A good player tracks both their own hand and this.",a:"What are opponents’ likely hands?"},
+      {v:800,q:"Calling too often may speed your hand but weakens this.",a:"What is concealment or secrecy?"},
+      {v:1000,q:"Good Mahjong decisions combine rules knowledge, probability, memory, and this.",a:"What is judgment?"}
+    ]}
+  ]
+}
 ];
+
+var finalQuestion = {
+  category:"Final Jeopardy: Winning Decisions",
+  clue:"You are choosing between a high-value hand that needs four specific tiles and a lower-value hand that needs two flexible tiles. What strategic principle should guide the decision?",
+  answer:"Choose the hand with the best realistic path to completion, not simply the highest point value."
+};
+
+function byId(id){ return document.getElementById(id); }
+
+function init(){
+  byId("startBtn").onclick = startGame;
+  byId("nextRoundBtn").onclick = nextRound;
+  byId("finalBtn").onclick = showFinal;
+  byId("restartBtn").onclick = restartGame;
+  byId("showAnswerBtn").onclick = showAnswer;
+  byId("closeBtn").onclick = closeModal;
+  byId("revealFinalBtn").onclick = revealFinalClue;
+  byId("showFinalAnswerBtn").onclick = revealFinalAnswer;
+  byId("backToGameBtn").onclick = backToGame;
+}
+
+function startGame(){
+  var count = parseInt(byId("playerCount").value,10);
+  timerSeconds = parseInt(byId("timerSeconds").value,10);
+  gameMode = byId("gameMode").value;
+  players = [];
+  for(var i=0;i<count;i++){ players.push({name: count===1 ? "Player" : "Team "+(i+1), score:0}); }
+  currentRound = 0;
+  byId("setupScreen").classList.add("hidden");
+  byId("finalScreen").classList.add("hidden");
+  byId("gameScreen").classList.remove("hidden");
+  renderScores();
+  renderBoard();
+}
 
 function renderScores(){
-    let html = "";
-    teams.forEach((t,i)=>{
-        html += `<div>${t.name}: <strong>${t.score}</strong>
-        <button onclick="adjustScore(${i},100)">+100</button>
-        <button onclick="adjustScore(${i},-100)">-100</button>
-        </div>`;
-    });
-    document.getElementById("scores").innerHTML = html;
+  var html = "";
+  for(var i=0;i<players.length;i++){
+    html += '<div class="scoreCard"><div>'+players[i].name+'</div><strong>$'+players[i].score+'</strong></div>';
+  }
+  byId("scores").innerHTML = html;
 }
 
-function adjustScore(i,val){
-    teams[i].score += val;
-    renderScores();
-}
-
-function tile(symbol){
-    return `<div class="tile">${symbol}</div>`;
-}
-
-function answerTile(symbol, correct){
-    return `<div class="tile answerTile" onclick="tileAnswer(${correct})">${symbol}</div>`;
-}
-
-function tileAnswer(correct){
-    if(correct){
-        document.getElementById("answerArea").innerHTML =
-            "<h2>✅ Correct!</h2>";
-    } else {
-        document.getElementById("answerArea").innerHTML =
-            "<h2>❌ Not quite.</h2>";
+function renderBoard(){
+  var round = rounds[currentRound];
+  byId("roundLabel").innerHTML = round.name;
+  byId("finalBtn").style.display = (gameMode==="double" ? "inline-block" : "none");
+  byId("nextRoundBtn").style.display = (gameMode==="double" && currentRound===0 ? "inline-block" : "none");
+  var html = "";
+  for(var c=0;c<round.categories.length;c++){
+    html += '<div class="category">'+round.categories[c].title+'</div>';
+  }
+  for(var r=0;r<5;r++){
+    for(var c2=0;c2<round.categories.length;c2++){
+      var clue = round.categories[c2].clues[r];
+      var id = "r"+currentRound+"c"+c2+"q"+r;
+      var used = clue.used ? " used" : "";
+      html += '<div id="'+id+'" class="clue'+used+'" onclick="openClue('+c2+','+r+')">$'+clue.v+'</div>';
     }
+  }
+  byId("board").innerHTML = html;
+  updateTimerDisplay();
 }
 
-const categories = [
-{
-title:"Tile Basics",
-clues:[
-{
-value:100,
-question:`Which tile is Bamboo 3?`,
-answers:`
-${answerTile("🀐",false)}
-${answerTile("🀒",true)}
-${answerTile("🀔",false)}
-${answerTile("🀖",false)}
-`
-},
-{
-value:200,
-question:`Which tile is Circle 5?`,
-answers:`
-${answerTile("🀝",false)}
-${answerTile("🀙",false)}
-${answerTile("🀜",true)}
-${answerTile("🀞",false)}
-`
-},
-{
-value:300,
-question:`Which tile is Character 9?`,
-answers:`
-${answerTile("🀇",false)}
-${answerTile("🀏",true)}
-${answerTile("🀋",false)}
-${answerTile("🀍",false)}
-`
-},
-{
-value:400,
-question:`Which tile is the Red Dragon?`,
-answers:`
-${answerTile("🀄",true)}
-${answerTile("🀅",false)}
-${answerTile("🀆",false)}
-${answerTile("🀀",false)}
-`
-},
-{
-value:500,
-question:`Which tile is the North Wind?`,
-answers:`
-${answerTile("🀁",false)}
-${answerTile("🀂",false)}
-${answerTile("🀃",true)}
-${answerTile("🀀",false)}
-`
-}
-]
-},
-{
-title:"Complete the Hand",
-clues:[
-{
-value:100,
-question:`Which tile completes this pung? 
-<div class="hand">${tile("🀙")}${tile("🀙")}</div>`,
-answers:`
-${answerTile("🀙",true)}
-${answerTile("🀚",false)}
-${answerTile("🀛",false)}
-${answerTile("🀜",false)}
-`
-},
-{
-value:200,
-question:`Which tile completes this chow? 
-<div class="hand">${tile("🀇")}${tile("🀈")}</div>`,
-answers:`
-${answerTile("🀊",false)}
-${answerTile("🀉",true)}
-${answerTile("🀋",false)}
-${answerTile("🀌",false)}
-`
-},
-{
-value:300,
-question:`Which tile completes this pair?
-<div class="hand">${tile("🀄")}</div>`,
-answers:`
-${answerTile("🀄",true)}
-${answerTile("🀅",false)}
-${answerTile("🀆",false)}
-${answerTile("🀃",false)}
-`
-},
-{
-value:400,
-question:`Which tile completes this chow?
-<div class="hand">${tile("🀑")}${tile("🀒")}</div>`,
-answers:`
-${answerTile("🀓",true)}
-${answerTile("🀔",false)}
-${answerTile("🀕",false)}
-${answerTile("🀖",false)}
-`
-},
-{
-value:500,
-question:`Which tile completes this pung?
-<div class="hand">${tile("🀂")}${tile("🀂")}</div>`,
-answers:`
-${answerTile("🀁",false)}
-${answerTile("🀂",true)}
-${answerTile("🀃",false)}
-${answerTile("🀀",false)}
-`
-}
-]
-},
-{
-title:"Game Terms",
-clues:[
-{value:100, question:"What is a Pung?", answers:"<h3>A set of 3 identical tiles.</h3>"},
-{value:200, question:"What is a Kong?", answers:"<h3>A set of 4 identical tiles.</h3>"},
-{value:300, question:"What is a Chow?", answers:"<h3>A sequence of 3 suited tiles in order.</h3>"},
-{value:400, question:"What is Mahjong?", answers:"<h3>A complete winning hand.</h3>"},
-{value:500, question:"What is the Charleston?", answers:"<h3>A tile-passing phase in American Mahjong.</h3>"}
-]
-},
-{
-title:"Strategy",
-clues:[
-{value:100, question:"Why keep flexible tiles early?", answers:"<h3>They allow more possible hand directions.</h3>"},
-{value:200, question:"Why watch discards?", answers:"<h3>They reveal what opponents may be building.</h3>"},
-{value:300, question:"Why avoid exposing too early?", answers:"<h3>You reveal information about your hand.</h3>"},
-{value:400, question:"Why collect pairs?", answers:"<h3>Many hands require at least one pair.</h3>"},
-{value:500, question:"What is defensive play?", answers:"<h3>Discarding safely to avoid helping opponents.</h3>"}
-]
-},
-{
-title:"American Mahjong",
-clues:[
-{value:100, question:"What item lists legal hands?", answers:"<h3>The National Mah Jongg League card.</h3>"},
-{value:200, question:"What special tile acts as a wildcard?", answers:"<h3>The Joker.</h3>"},
-{value:300, question:"Can Jokers be used in pairs?", answers:"<h3>No.</h3>"},
-{value:400, question:"Can a Joker be exchanged?", answers:"<h3>Yes, under certain rules.</h3>"},
-{value:500, question:"What does calling a tile do?", answers:"<h3>Lets you expose tiles to complete a set.</h3>"}
-]
-},
-{
-title:"Final Concepts",
-clues:[
-{value:100, question:"How many tiles are in a Mahjong hand?", answers:"<h3>Typically 14.</h3>"},
-{value:200, question:"What are honor tiles?", answers:"<h3>Winds and dragons.</h3>"},
-{value:300, question:"What are suited tiles?", answers:"<h3>Bamboo, circles, and characters.</h3>"},
-{value:400, question:"What is a concealed hand?", answers:"<h3>A hand with no exposed sets.</h3>"},
-{value:500, question:"Why is Mahjong considered strategic?", answers:"<h3>It blends memory, probability, and adaptation.</h3>"}
-]
-}
-];
-
-function buildBoard(){
-    let board = document.getElementById("board");
-    let html = "";
-
-    categories.forEach(cat=>{
-        html += `<div class="category">${cat.title}</div>`;
-    });
-
-    for(let r=0;r<5;r++){
-        categories.forEach((cat,c)=>{
-            let clue = cat.clues[r];
-            html += `<div class="clue" id="c${c}_${r}" onclick="showClue(${c},${r})">$${clue.value}</div>`;
-        });
-    }
-
-    board.innerHTML = html;
+function openClue(c,r){
+  var clue = rounds[currentRound].categories[c].clues[r];
+  if(clue.used){ return; }
+  clue.used = true;
+  currentClue = clue;
+  currentValue = clue.v;
+  byId("modalTitle").innerHTML = rounds[currentRound].categories[c].title + " - $" + clue.v;
+  byId("clueText").innerHTML = clue.q;
+  byId("answerText").style.display = "none";
+  byId("answerText").innerHTML = clue.a;
+  byId("answerChoices").innerHTML = "";
+  renderAwardButtons();
+  byId("modal").style.display = "flex";
+  renderBoard();
+  startTimer();
 }
 
-function showClue(c,r){
-    const clue = categories[c].clues[r];
-    document.getElementById("questionArea").innerHTML =
-        `<h2>${categories[c].title} - $${clue.value}</h2>
-         <div class="small">${clue.question}</div>`;
-    document.getElementById("answerArea").innerHTML = clue.answers;
-    document.getElementById("modal").style.display = "flex";
-    document.getElementById(`c${c}_${r}`).classList.add("used");
+function renderAwardButtons(){
+  var html = "";
+  for(var i=0;i<players.length;i++){
+    html += '<button type="button" onclick="award('+i+','+currentValue+')">'+players[i].name+' Correct</button>';
+    html += '<button type="button" class="secondary" onclick="award('+i+',-'+currentValue+')">'+players[i].name+' Incorrect</button>';
+  }
+  byId("awardButtons").innerHTML = html;
+}
+
+function award(i, amount){
+  players[i].score += amount;
+  renderScores();
+}
+
+function showAnswer(){
+  byId("answerText").style.display = "block";
 }
 
 function closeModal(){
-    document.getElementById("modal").style.display = "none";
+  stopTimer();
+  byId("modal").style.display = "none";
 }
 
-renderScores();
-buildBoard();
-</script>
+function startTimer(){
+  stopTimer();
+  if(timerSeconds<=0){ updateTimerDisplay(); return; }
+  timeLeft = timerSeconds;
+  updateTimerDisplay();
+  timerInterval = setInterval(function(){
+    timeLeft--;
+    updateTimerDisplay();
+    if(timeLeft<=0){ stopTimer(); byId("timerDisplay").innerHTML = "Time!"; }
+  },1000);
+}
 
+function stopTimer(){
+  if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
+}
+
+function updateTimerDisplay(){
+  if(timerSeconds<=0){ byId("timerDisplay").innerHTML = "Timer: Off"; }
+  else { byId("timerDisplay").innerHTML = "Timer: " + timeLeft + "s"; }
+}
+
+function nextRound(){
+  if(currentRound===0){
+    currentRound = 1;
+    renderBoard();
+  }
+}
+
+function showFinal(){
+  byId("gameScreen").classList.add("hidden");
+  byId("finalScreen").classList.remove("hidden");
+  byId("finalCategory").innerHTML = '<h3>'+finalQuestion.category+'</h3>';
+  byId("finalClue").classList.add("hidden");
+  byId("finalAnswer").classList.add("hidden");
+  var w = "";
+  for(var i=0;i<players.length;i++){
+    w += '<div class="finalCard"><strong>'+players[i].name+'</strong><br>Current score: $'+players[i].score+'<br><label>Wager</label><input id="wager'+i+'" type="number" min="0" value="0"></div>';
+  }
+  byId("wagers").innerHTML = w;
+  renderFinalAward();
+}
+
+function revealFinalClue(){
+  byId("finalClue").classList.remove("hidden");
+  byId("finalClue").innerHTML = "<h3>Clue</h3><p>"+finalQuestion.clue+"</p>";
+}
+
+function revealFinalAnswer(){
+  byId("finalAnswer").classList.remove("hidden");
+  byId("finalAnswer").innerHTML = "<h3>Answer</h3><p>"+finalQuestion.answer+"</p>";
+}
+
+function renderFinalAward(){
+  var html = "";
+  for(var i=0;i<players.length;i++){
+    html += '<button type="button" onclick="awardFinal('+i+',1)">'+players[i].name+' Correct</button>';
+    html += '<button type="button" class="secondary" onclick="awardFinal('+i+',-1)">'+players[i].name+' Incorrect</button>';
+  }
+  byId("finalAward").innerHTML = html;
+}
+
+function awardFinal(i, direction){
+  var wager = parseInt(byId("wager"+i).value || "0",10);
+  if(wager<0){ wager = 0; }
+  players[i].score += direction * wager;
+  renderScores();
+  showFinal();
+}
+
+function backToGame(){
+  byId("finalScreen").classList.add("hidden");
+  byId("gameScreen").classList.remove("hidden");
+  renderScores();
+}
+
+function restartGame(){
+  for(var r=0;r<rounds.length;r++){
+    for(var c=0;c<rounds[r].categories.length;c++){
+      for(var q=0;q<rounds[r].categories[c].clues.length;q++){
+        rounds[r].categories[c].clues[q].used = false;
+      }
+    }
+  }
+  stopTimer();
+  byId("gameScreen").classList.add("hidden");
+  byId("finalScreen").classList.add("hidden");
+  byId("setupScreen").classList.remove("hidden");
+}
+
+if(document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
+</script>
 </body>
 </html>
