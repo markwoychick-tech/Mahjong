@@ -350,11 +350,14 @@ var players = [];
 var currentRound = 0;
 var currentClue = null;
 var currentValue = 0;
+var clueAwarded = false;
+var finalAwarded = {};
 var timerSeconds = 30;
 var timerInterval = null;
 var timeLeft = 0;
 var gameMode = "double";
 
+// Tile reference: Characters 🀇-🀏 = 1-9; Bamboo 🀐-🀘 = 1-9; Circles/Dots 🀙-🀡 = 1-9; Winds 🀀 East, 🀁 South, 🀂 West, 🀃 North; Dragons 🀄 Red, 🀅 Green, 🀆 White.
 function tile(s){ return '<span class="tile">'+s+'</span>'; }
 function choices(items){
   var out = '<div class="choiceGrid">';
@@ -372,7 +375,7 @@ var rounds = [
   categories:[
     {title:"Tile Basics", clues:[
       {v:100,q:'Which tile is Bamboo 3?'+choices([{label:"A",symbol:"🀐"},{label:"B",symbol:"🀒"},{label:"C",symbol:"🀔"},{label:"D",symbol:"🀖"}]),a:"B. Bamboo 3."},
-      {v:200,q:'Which tile is Circle 5?'+choices([{label:"A",symbol:"🀝"},{label:"B",symbol:"🀙"},{label:"C",symbol:"🀜"},{label:"D",symbol:"🀞"}]),a:"C. Circle 5."},
+      {v:200,q:'Which tile is Circle 5?'+choices([{label:"A",symbol:"🀝"},{label:"B",symbol:"🀙"},{label:"C",symbol:"🀜"},{label:"D",symbol:"🀞"}]),a:"A. Circle 5."},
       {v:300,q:'Which tile is Character 9?'+choices([{label:"A",symbol:"🀇"},{label:"B",symbol:"🀏"},{label:"C",symbol:"🀋"},{label:"D",symbol:"🀍"}]),a:"B. Character 9."},
       {v:400,q:'Which tile is the Red Dragon?'+choices([{label:"A",symbol:"🀄"},{label:"B",symbol:"🀅"},{label:"C",symbol:"🀆"},{label:"D",symbol:"🀀"}]),a:"A. Red Dragon."},
       {v:500,q:'Which tile is North Wind?'+choices([{label:"A",symbol:"🀁"},{label:"B",symbol:"🀂"},{label:"C",symbol:"🀃"},{label:"D",symbol:"🀀"}]),a:"C. North Wind."}
@@ -533,6 +536,7 @@ function openClue(c,r){
   clue.used = true;
   currentClue = clue;
   currentValue = clue.v;
+  clueAwarded = false;
   byId("modalTitle").innerHTML = rounds[currentRound].categories[c].title + " - $" + clue.v;
   byId("clueText").innerHTML = clue.q;
   byId("answerText").style.display = "none";
@@ -554,7 +558,14 @@ function renderAwardButtons(){
 }
 
 function award(i, amount){
+  if(clueAwarded){
+    byId("answerText").style.display = "block";
+    byId("answerText").innerHTML = currentClue.a + "<br><br><strong>Score already recorded for this clue.</strong>";
+    return;
+  }
   players[i].score += amount;
+  clueAwarded = true;
+  byId("awardButtons").innerHTML = '<strong>Score recorded for this clue.</strong>';
   renderScores();
 }
 
@@ -596,6 +607,7 @@ function nextRound(){
 }
 
 function showFinal(){
+  finalAwarded = {};
   byId("gameScreen").classList.add("hidden");
   byId("finalScreen").classList.remove("hidden");
   byId("finalCategory").innerHTML = '<h3>'+finalQuestion.category+'</h3>';
@@ -622,18 +634,27 @@ function revealFinalAnswer(){
 function renderFinalAward(){
   var html = "";
   for(var i=0;i<players.length;i++){
-    html += '<button type="button" onclick="awardFinal('+i+',1)">'+players[i].name+' Correct</button>';
-    html += '<button type="button" class="secondary" onclick="awardFinal('+i+',-1)">'+players[i].name+' Incorrect</button>';
+    if(finalAwarded[i]){
+      html += '<span class="choiceLabel">'+players[i].name+' final score recorded</span>';
+    } else {
+      html += '<button type="button" onclick="awardFinal('+i+',1)">'+players[i].name+' Correct</button>';
+      html += '<button type="button" class="secondary" onclick="awardFinal('+i+',-1)">'+players[i].name+' Incorrect</button>';
+    }
   }
   byId("finalAward").innerHTML = html;
 }
 
 function awardFinal(i, direction){
+  if(finalAwarded[i]){
+    return;
+  }
   var wager = parseInt(byId("wager"+i).value || "0",10);
   if(wager<0){ wager = 0; }
+  if(wager > Math.max(players[i].score, 0)){ wager = Math.max(players[i].score, 0); }
   players[i].score += direction * wager;
+  finalAwarded[i] = true;
   renderScores();
-  showFinal();
+  renderFinalAward();
 }
 
 function backToGame(){
